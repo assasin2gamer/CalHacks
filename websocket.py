@@ -37,3 +37,13 @@ start_server = websockets.serve(audio_stream, "localhost", 8765)
 # Start the server
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
+
+
+async with websockets.connect("ws://localhost:8765") as websocket:
+    await websocket.send("SINGLE:YourSingleDataHere")
+
+async with websockets.connect("ws://localhost:8765") as websocket:
+    while True:
+        await websocket.send("CONTINUOUS:YourContinuousDataHere")
+        # Add a delay if needed
+        await asyncio.sleep(1)  # Adjust the delay as needed
