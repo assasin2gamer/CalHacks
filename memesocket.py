@@ -1,39 +1,41 @@
-import asyncio
-import websockets
-import pyaudio
+from flask import Flask, request, jsonify
+import threading
+import time
 
-CHUNK = 50000  # Number of audio frames per buffer
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
+app = Flask(__name__)
 
-# Define a function to handle WebSocket connections
-async def audio_stream(websocket, path):
-    # Print a message when a client connects
-    print(f"Client connected from {websocket.remote_address}")
+# Define a global variable to store data
+data_store = []
 
-    audio = pyaudio.PyAudio()
+# Function to process data when it is received
+def process_data(data):
+    # You can define your data processing logic here
+    print(f"Received data: {data}")
 
-    try:
-        stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True)
-        while True:
-            data = await websocket.recv()
-            stream.write(data)
-            print("audio recieved")
-    except websockets.exceptions.ConnectionClosedError:
-        pass  # Connection closed by the client
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        if 'stream' in locals() and stream.is_active():
-            stream.stop_stream()
-            stream.close()
-        if 'audio' in locals():
-            audio.terminate()
+# Route for receiving continuous data
+@app.route('/send_data', methods=['POST'])
+def send_data():
+    data = request.json
+    if data:
+        data_store.append(data)
+        return jsonify({"message": "Data received successfully"}), 200
+    else:
+        return jsonify({"message": "Invalid data"}), 400
 
-# Set up the WebSocket server
-start_server = websockets.serve(audio_stream, "localhost", 8765)
+# Function to continuously send data
+def send_continuous_data():
+    while True:
+        # Simulate data generation (you can replace this with your data source)
+        data_point = {"value": time.time()}
+        # Send data to the server
+        response = requests.post('http://localhost:5000/send_data', json=data_point)
+        if response.status_code == 200:
+            print("Continuous data sent successfully")
+        time.sleep(1)  # Adjust the interval as needed
 
-# Start the server
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+# Create a thread for sending continuous data
+continuous_data_thread = threading.Thread(target=send_continuous_data)
+continuous_data_thread.start()
+
+if __name__ == '__main__':
+    app.run(debug=True)
