@@ -1,6 +1,7 @@
 import asyncio
 import websockets
-
+import psycopg2
+import os
 # Dictionary to store client WebSocket connections
 clients = set()
 
@@ -13,7 +14,6 @@ async def handle_connection(websocket, path):
     # Add the client to the set of connected clients
     clients.add(websocket)
     print(f"Client connected from {websocket.remote_address}")
-
     try:
         async for message in websocket:
             # Check if the received message is a single data point
@@ -49,6 +49,11 @@ async def handle_connection(websocket, path):
 
 def send(sendload, label):
     print(str(sendload), str(label))
+    database_url ="postgresql://stephen:JqNZ8U622VuZfvZv25uXfw@howler-fawn-12542.7tt.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full"
+    conn = psycopg2.connect(os.environ[database_url])
+    with conn.cursor() as cur:
+        cur.execute('INSERT INTO accounts (id, balance) VALUES (1, 1000), (2, 250)')
+    conn.commit()
 # Set up the WebSocket server
 start_server = websockets.serve(handle_connection, "localhost", 8765)
 # Start the server
