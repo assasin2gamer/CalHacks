@@ -3,8 +3,7 @@ import websockets
 import psycopg2
 import os
 
-
-conn = psycopg2.connect(os.environ['DATABASE_URL']  )
-print(conn)
+conn = psycopg2.connect('postgresql://t:yOQkfZS9LoTsvPL4fozvaA@good-stag-12544.7tt.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full')
 with conn.cursor() as cur:
-    cur.execute('INSERT INTO accounts (id, balance) VALUES (1, 1000), (2, 250)')
+    cur.execute(insert_data_sql, (label, sendload))
+    conn.commit()

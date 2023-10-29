@@ -2,11 +2,16 @@ import asyncio
 import websockets
 import psycopg2
 import os
+import json
 # Dictionary to store client WebSocket connections
 clients = set()
 
 sendload = []
 
+insert_data_sql = """
+INSERT INTO eeg_data (target, data)
+VALUES (%s, %s)
+"""
 
 # Define a function to handle WebSocket connections
 async def handle_connection(websocket, path):
@@ -30,10 +35,13 @@ async def handle_connection(websocket, path):
             # Check if the received message is continuous data
             elif message.startswith("["):
                 # Process continuous data
+                if len(sendload) > 100:
+                    sendload = sendload[50:]
                 continuous_data = message[len("CONTINUOUS:"):]
                 sendload.append(continuous_data)
-                print('appended')
                 # Handle the continuous data as needed
+                
+                    
 
             else:
                 print(f"Received unrecognized message: {message}")
@@ -48,10 +56,15 @@ async def handle_connection(websocket, path):
 
 def send(sendload, label):
     print('send')
-    print(sendload, label)
+    print(len(sendload), label)
+    sendload = json.dumps(sendload)
+    conn = psycopg2.connect('postgresql://t:yOQkfZS9LoTsvPL4fozvaA@good-stag-12544.7tt.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full')
+    with conn.cursor() as cur:
+        cur.execute(insert_data_sql, (label, sendload))
+        conn.commit()
     
 # Set up the WebSocket server
 start_server = websockets.serve(handle_connection, "localhost", 8765)
-# Start the server
+# Start the servers
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
