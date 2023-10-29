@@ -10,7 +10,7 @@ from hume.models.config import BurstConfig
 from hume.models.config import ProsodyConfig
 from pydub import AudioSegment
 import os
-
+import json
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -58,7 +58,10 @@ async def main():
 
         async with client.connect(configs) as socket:
             result = await socket.send_file("./output.wav")
-            print(result)
-       
+            uri = "ws://localhost:8765" 
+            sample_str = json.dumps(result)
+            async with websockets.connect(uri) as websocket:
+                await websocket.send(sample_str)
 
-asyncio.run(main())
+       
+asyncio.get_event_loop().run_until_complete(main())

@@ -17,22 +17,19 @@ async def handle_connection(websocket, path):
     try:
         async for message in websocket:
             # Check if the received message is a single data point
-            if message.startswith("SINGLE:"):
+            if message.startswith("{"):
                 # Process single data point
                 single_data = message[len("SINGLE:"):]
-                print(f"Received single data: {single_data}")
-
-
                 sendload = []
+                send(sendload, single_data)
 
 
-                # Handle the single data as needed
+                # Handle the single data as neede
 
             # Check if the received message is continuous data
             elif message.startswith("["):
                 # Process continuous data
                 continuous_data = message[len("CONTINUOUS:"):]
-                print(f"Received continuous data: {continuous_data}")
                 sendload.append(continuous_data)
                 # Handle the continuous data as needed
 
@@ -48,12 +45,8 @@ async def handle_connection(websocket, path):
         clients.remove(websocket)
 
 def send(sendload, label):
-    print(str(sendload), str(label))
-    database_url ="postgresql://stephen:JqNZ8U622VuZfvZv25uXfw@howler-fawn-12542.7tt.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full"
-    conn = psycopg2.connect(os.environ[database_url])
-    with conn.cursor() as cur:
-        cur.execute('INSERT INTO accounts (id, balance) VALUES (1, 1000), (2, 250)')
-    conn.commit()
+   print('send')
+
 # Set up the WebSocket server
 start_server = websockets.serve(handle_connection, "localhost", 8765)
 # Start the server
