@@ -20,8 +20,9 @@ async def handle_connection(websocket, path):
             if message.startswith("{"):
                 # Process single data point
                 single_data = message[len("SINGLE:"):]
-                sendload = []
                 send(sendload, single_data)
+
+                sendload = []
 
 
                 # Handle the single data as neede
@@ -31,6 +32,7 @@ async def handle_connection(websocket, path):
                 # Process continuous data
                 continuous_data = message[len("CONTINUOUS:"):]
                 sendload.append(continuous_data)
+                print('appended')
                 # Handle the continuous data as needed
 
             else:
@@ -45,15 +47,11 @@ async def handle_connection(websocket, path):
         clients.remove(websocket)
 
 def send(sendload, label):
-   print('send')
-   database_url ="postgresql://stephen:JqNZ8U622VuZfvZv25uXfw@howler-fawn-12542.7tt.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full"
-conn = psycopg2.connect(os.environ[database_url])
-    with conn.cursor() as cur:
-        cur.execute()
-    conn.commit()
-
+    print('send')
+    print(sendload, label)
+    
 # Set up the WebSocket server
 start_server = websockets.serve(handle_connection, "localhost", 8765)
 # Start the server
-asyncio.get_event_loop().ruan_until_complete(start_server)
+asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
