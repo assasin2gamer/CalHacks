@@ -1,6 +1,8 @@
 import asyncio
 import csv
 import websockets
+import json
+from pylsl import StreamInlet, resolve_stream
 
 async def send_eeg_data(uri):
     # first resolve an EEG stream on the lab network
@@ -16,11 +18,10 @@ async def send_eeg_data(uri):
             sample, timestamp = inlet.pull_sample()
 
             # Convert the sample to a list of strings (assuming sample is a list)
-            sample_str = [str(value) for value in sample]
+            sample_str = json.dumps(sample)
 
-            # Send the EEG data as a JSON string over WebSocket
-            await websocket.send(",".join(sample_str))  # Adjust the data format as needed
+            await websocket.send(sample_str)
 
 if __name__ == '__main__':
-    uri = "ws://your_websocket_server_address"  # Replace with your WebSocket server address
+    uri = "ws://localhost:8765"  # Replace with your WebSocket server address
     asyncio.get_event_loop().run_until_complete(send_eeg_data(uri))
